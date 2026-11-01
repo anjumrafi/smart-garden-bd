@@ -8,5 +8,6 @@ dependencies:
   flutter:
     sdk: flutter
   fl_chart: ^0.69.0
+  shared_preferences: ^2.3.0
 flutter:
   uses-material-design: true
