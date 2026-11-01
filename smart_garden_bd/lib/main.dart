@@ -15,7 +15,7 @@ class SmartGardenApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: kGreen, primary: kGreen),
           scaffoldBackgroundColor: kBg,
           fontFamily: 'Roboto',
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             color: Colors.white,
             elevation: 1,
             shadowColor: Colors.black12,
