@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'auth_screens.dart';
 import 'data.dart';
 
 Widget demoBadge() => Container(
@@ -42,7 +43,9 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            context,
+            MaterialPageRoute(
+                builder: (_) => appState.onboardingSeen ? const LoginScreen() : const OnboardingScreen()));
       }
     });
   }
@@ -98,12 +101,20 @@ class LoginScreen extends StatelessWidget {
                     border: OutlineInputBorder())),
             Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: () {}, child: const Text('Forgot password?'))),
+                child: TextButton(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                    child: const Text('Forgot password?'))),
             FilledButton(
                 onPressed: () => Navigator.pushReplacement(
                     context, MaterialPageRoute(builder: (_) => const MainShell())),
                 child: const Text('Sign In (Demo)')),
             const SizedBox(height: 12),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Text("Don't have an account?"),
+              TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+                  child: const Text('Sign Up')),
+            ]),
             const Center(
                 child: Text('Real login comes with Firebase in Phase 3.',
                     style: TextStyle(color: kText2, fontSize: 12))),
@@ -484,20 +495,44 @@ class _WateringList extends StatelessWidget {
 
 Widget demoRow() => Align(alignment: Alignment.centerLeft, child: demoBadge());
 
-class _Analytics extends StatelessWidget {
+class _Analytics extends StatefulWidget {
   const _Analytics();
+  @override
+  State<_Analytics> createState() => _AnalyticsState();
+}
+
+class _AnalyticsState extends State<_Analytics> {
+  int range = 0;
   @override
   Widget build(BuildContext context) {
     final colors = [Colors.red, Colors.green, Colors.blue, Colors.purple];
+    const labels = ['24H', '7D', '30D'];
+    const maxXs = [24, 7, 30];
+    const steps = [2, 1, 3];
+    final maxX = maxXs[range];
     return ListView(padding: const EdgeInsets.all(16), children: [
       demoRow(),
-      const SizedBox(height: 4),
-      const Text('24-hour moisture (sample data)', style: TextStyle(color: kText2)),
+      const SizedBox(height: 8),
+      Row(children: [
+        for (var i = 0; i < 3; i++)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(labels[i]),
+              selected: range == i,
+              selectedColor: kGreen,
+              labelStyle: TextStyle(color: range == i ? Colors.white : kText),
+              onSelected: (_) => setState(() => range = i),
+            ),
+          ),
+      ]),
+      const SizedBox(height: 8),
+      Text('${labels[range]} moisture (sample data)', style: const TextStyle(color: kText2)),
       const SizedBox(height: 12),
       SizedBox(
         height: 240,
         child: LineChart(LineChartData(
-          minY: 0, maxY: 100, minX: 0, maxX: 24,
+          minY: 0, maxY: 100, minX: 0, maxX: maxX.toDouble(),
           gridData: const FlGridData(drawVerticalLine: false),
           borderData: FlBorderData(show: false),
           titlesData: const FlTitlesData(
@@ -512,8 +547,8 @@ class _Analytics extends StatelessWidget {
                 barWidth: 3,
                 dotData: const FlDotData(show: false),
                 spots: [
-                  for (var h = 0; h <= 24; h += 2)
-                    FlSpot(h.toDouble(), (appState.zones[i].moisture + 8 * sin(h / 4 + i)).clamp(0, 100).toDouble()),
+                  for (var x = 0; x <= maxX; x += steps[range])
+                    FlSpot(x.toDouble(), (appState.zones[i].moisture + 8 * sin(x / (range == 0 ? 4 : 2) + i)).clamp(0, 100).toDouble()),
                 ],
               ),
           ],

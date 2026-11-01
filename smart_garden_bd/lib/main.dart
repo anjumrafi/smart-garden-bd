@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'data.dart';
 import 'screens.dart';
 
-void main() => runApp(const SmartGardenApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await appState.load();
+  runApp(const SmartGardenApp());
+}
 
 class SmartGardenApp extends StatelessWidget {
   const SmartGardenApp({super.key});

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const kGreen = Color(0xFF16833B);
 const kDark = Color(0xFF075B2B);
@@ -38,10 +39,49 @@ class AppState extends ChangeNotifier {
     Zone(3, 'Herbs', 28, 35, Icons.eco, Colors.green),
     Zone(4, 'Flowers', 55, 50, Icons.filter_vintage, Colors.pink),
   ];
-  void update() => notifyListeners();
+  bool onboardingSeen = false;
+  SharedPreferences? _p;
+
+  Future<void> load() async {
+    try {
+      final p = _p = await SharedPreferences.getInstance();
+      onboardingSeen = p.getBool('seen') ?? false;
+      automatic = p.getBool('auto') ?? true;
+      for (final z in zones) {
+        z.plant = p.getString('z${z.id}_plant') ?? z.plant;
+        z.threshold = p.getInt('z${z.id}_thr') ?? z.threshold;
+        z.duration = p.getInt('z${z.id}_dur') ?? z.duration;
+        z.enabled = p.getBool('z${z.id}_en') ?? z.enabled;
+      }
+    } catch (_) {}
+  }
+
+  void _save() {
+    final p = _p;
+    if (p == null) return;
+    p.setBool('seen', onboardingSeen);
+    p.setBool('auto', automatic);
+    for (final z in zones) {
+      p.setString('z${z.id}_plant', z.plant);
+      p.setInt('z${z.id}_thr', z.threshold);
+      p.setInt('z${z.id}_dur', z.duration);
+      p.setBool('z${z.id}_en', z.enabled);
+    }
+  }
+
+  void update() {
+    _save();
+    notifyListeners();
+  }
+
   void setAutomatic(bool v) {
     automatic = v;
-    notifyListeners();
+    update();
+  }
+
+  void markOnboardingSeen() {
+    onboardingSeen = true;
+    update();
   }
 }
 
